@@ -16,7 +16,7 @@ slack_event_adapter = SlackEventAdapter(SIGNING_SECRET, '/slack/events', app)
 client = slack.WebClient(token=SLACK_TOKEN)
  
 # initialize logger
-FORMAT = '%(asctime)s %(channel)-15s %(user)-8s %(message)s'
+FORMAT = '%(asctime)s %(message)s'
 logging.basicConfig(format=FORMAT, filename='bot.log', filemode='a',)
 logger = logging.getLogger('slack_loggger')
 
@@ -26,9 +26,6 @@ users_table = db.table('users')
 set_up_table = db.table('set_up')
 # Create quary object for DB
 quary = Query()
-
-set_up_table.upsert({'setup': 'Panther01', 'used_by': 'ella'}, quary.setup == 'Panther01')
-print(set_up_table.all())
 
 @ slack_event_adapter.on('message')
 def message(payload):
@@ -42,9 +39,7 @@ def message(payload):
         try:
             set_up_table.insert_multiple(text.replace('bootstrap db ', ''))
         except Exception as err:
-            logger.warning('error with boostrap database: %s',
-                            err,
-                            extra={'user': user_id, 'channel': channel_id})
+            logger.warning(f'error with boostrap database: {err}')
             client.chat_postMessage(channel=channel_id,
                                     text=f"something went wrong {err}")
     elif re.compile(r'using.*').match(text):
@@ -53,9 +48,7 @@ def message(payload):
             set_up_table.upsert(
                 {'setup': setup, 'user': user_id}, quary.setup == setup)
         except Exception as err:
-            logger.warning('error with updating used server: %s',
-                            err,
-                            extra={'user': user_id, 'channel': channel_id})
+            logger.warning(f'error with updating used server: {err}')
             client.chat_postMessage(channel=channel_id,
                                     text=f"something went wrong {err}")
     elif re.compile(r'free setup.*').match(text):
@@ -64,23 +57,21 @@ def message(payload):
             set_up_table.upsert(
                 {'setup': setup, 'user': ''}, quary.setup == setup)
         except Exception as err:
-            logger.warning('error with updating used server: %s',
-                            err,
-                            extra={'user': user_id, 'channel': channel_id})
+            logger.warning(f'error with updating used server: {err}')
             client.chat_postMessage(channel=channel_id,
                                     text=f"something went wrong {err}")
     elif re.compile(r'show all.*').match(text):
         try:
-            client.chat_postMessage(channel=channel_id,
-                                    text=str(set_up_table.all()))
+            for server in set_up_table.all():
+                client.chat_postMessage(channel=channel_id,
+                                        text=str(server))
         except Exception as err:
-            logger.warning('error with updating used server: %s',
-                            err,
-                            extra={'user': user_id, 'channel': channel_id})
+            logger.warning(f'error with updating used server: {err}')
             client.chat_postMessage(channel=channel_id,
                                     text=f"something went wrong {err}")
     else:
         client.chat_postMessage(channel=channel_id,
                                     text=f"help!")
+
 if __name__ == "__main__":
     app.run(debug=True)
