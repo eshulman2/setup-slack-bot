@@ -13,14 +13,17 @@ class db():
     def update_server_user(self, set_up, user_name):
         self.set_up_table.upsert(
                 {'setup': set_up, 'user': user_name, 'in_use': True},
-                self.quary.setup == set_up)
+                self.query.setup == set_up)
 
     def free_up_server(self, set_up):
         self.set_up_table.upsert({'setup': set_up, 'user': None,
                 'in_use': False},
-                self.quary.setup == set_up)
+                self.query.setup == set_up)
 
     def list_free_servers(self):
-        '\n'.join([str(server) for server in 
-                    self.set_up_table.search(self.quary.in_use == 'False')])
+        return '\n'.join([str(server) for server in 
+                    self.set_up_table.search(self.query.in_use == "False")])
 
+    def add_setup(self, info):
+        self.set_up_table.upsert(info,
+                self.query.setup == info["setup"])

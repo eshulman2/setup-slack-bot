@@ -14,8 +14,8 @@ def hello_command(ack, command, respond):
 
 @app.command("/use-server")
 def hello_command(ack, command, respond):
-    DB.update_server_user(command["text"], command["user"])
-    ack("ack")
+    DB.update_server_user(command["text"], command["user_name"])
+    ack(f"server {command['text']} is now used by {command['user_name']}")
     
 @app.command("/free-server")
 def hello_command(ack, command, respond):
@@ -24,7 +24,8 @@ def hello_command(ack, command, respond):
 
 @app.command("/list-free")
 def hello_command(ack, command, respond):
-    ack(DB.list_free_servers())
+    ack()
+    respond(DB.list_free_servers())
 
 if __name__ == "__main__":
     # 'xapp- (zap) App Token'
