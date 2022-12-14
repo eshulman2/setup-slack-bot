@@ -19,7 +19,7 @@ def hello_command(ack, command, respond):
     
 @app.command("/free-server")
 def hello_command(ack, command, respond):
-    DB.update_server_user(command["text"])
+    DB.free_up_server(command["text"])
     ack("ack")
 
 @app.command("/list-free")
